@@ -1,0 +1,18 @@
+CP-Ghost stands for CaptivePortal-Ghost.
+This amazing tool will find clients of a given AP.
+This is the only thing it will do for now.
+It only requires a Unix based computers, the suite Aircrack-ng, and Ruby 1.9.3.
+
+To do list
+#Parameting mass ssid assignments
+# --ssid option
+# --help option
+# --connected client verified
+# --long scan [opionnal, seconds remaining]
+# Choose gem
+# rendering a nice table in the end
+# Create a connexion
+# Fix path problems
+# Show computers name in the output table
+# Save the output table
+# Changing progress bar
