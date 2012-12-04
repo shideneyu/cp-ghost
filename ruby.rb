@@ -64,7 +64,7 @@ remaining_part = proc do
   CSV.foreach(".shidopwn/last-01.csv") do |row|
     
     Choice.choices[:ssid].each { |target_ssid| @ap_macs[row[0]] = target_ssid and break if target_ssid == row[13][1..-1]} if row[13] && status == 0
-    @ap_macs.each { |ap_mac, target_ssid| break unless ap_mac == row[05][1..-1]; @client_macs[row[0]] = target_ssid} if status == 1 && row[0]
+    @ap_macs.each { |ap_mac, target_ssid| @client_macs[row[0]] = target_ssid and break if ap_mac == row[05][1..-1]} if status == 1 && row[0]
     status = 1 if row[0] == "Station MAC"
 
   end
