@@ -6,7 +6,7 @@ require 'highline/import'
 require 'thread'
 require 'ruby-progressbar'
 require 'choice'
-
+require 'formatador'
 
 Choice.options do
   header ''
@@ -39,14 +39,15 @@ Choice.options do
     long '--version'
     desc 'Show version'
     action do
-      puts "cp-ghost v0.2"
+      puts "cp-ghost v0.5"
       exit      
     end
   end
 end
 
     ctr = 0
-    @client_macs = {}
+    
+    @clients_array = []
     @ap_macs = {}
    	scndstatus = 0
     status = 0
@@ -62,14 +63,12 @@ end
 
 remaining_part = proc do
   CSV.foreach(".shidopwn/last-01.csv") do |row|
-    
     Choice.choices[:ssid].each { |target_ssid| @ap_macs[row[0]] = target_ssid and break if target_ssid == row[13][1..-1]} if row[13] && status == 0
-    @ap_macs.each { |ap_mac, target_ssid| @client_macs[row[0]] = target_ssid and break if ap_mac == row[05][1..-1]} if status == 1 && row[0]
+    @ap_macs.each { |ap_mac, target_ssid| @clients_array << Hash.new and @clients_array.last.replace({target_ssid => row[00]})  and break if row[05][1..-1] == ap_mac}  if status == 1 && row[0]
     status = 1 if row[0] == "Station MAC"
-
   end
-  puts "#{@client_macs.count} clients connected."
-  puts @client_macs
+  table_data = @clients_array
+  Formatador.display_table(table_data)
 
 end
 
@@ -103,4 +102,6 @@ system("sudo killall airodump-ng")
 # Fix path problems x
 # Save the output table x
 # Control C escaping
+# Option to listen to all available APs.
+# Option to choose network card
 # Nice readme
