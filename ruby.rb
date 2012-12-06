@@ -21,9 +21,16 @@ Choice.options do
   option :length do
     short '-l'
     long '--length=[length]'
-    desc 'Set one of severals SSID of the targeted access point'
+    desc 'Set one of severals SSID of the targeted access point (default: normal)'
     valid %w[quick normal long]
     default "normal"
+  end
+
+  option :interface do
+    short '-i'
+    long '--interface=[interface]'
+    desc 'Set the interface of the targeted access point which will be used (default: wlan0)'
+    default "wlan0"
   end
 
   separator ''
@@ -67,17 +74,17 @@ remaining_part = proc do
     @ap_macs.each { |ap_mac, target_ssid| @clients_array << Hash.new and @clients_array.last.replace({target_ssid => row[00]})  and break if row[05][1..-1] == ap_mac}  if status == 1 && row[0]
     status = 1 if row[0] == "Station MAC"
   end
-  table_data = @clients_array
-  Formatador.display_table(table_data)
+  Formatador.display_compact_table(@clients_array) unless @clients_array.empty?
+  puts "No results" if @clients_array.empty?
 
 end
 
-system("sudo ifconfig wlan0 down")
-system("sudo iwconfig wlan0 mode monitor")
+system("sudo ifconfig #{Choice.choices[:interface]} down")
+system("sudo iwconfig #{Choice.choices[:interface]}  mode monitor")
 system("sudo rm ~/.shidopwn/*") if system("mkdir -p ~/.shidopwn")
 
 counter = Thread.new do
-  system('cd .shidopwn && sudo airodump-ng -w last wlan0 >/dev/null 2>&1')
+  system("cd .shidopwn && sudo airodump-ng -w last #{Choice.choices[:interface]} >/dev/null 2>&1")
 end
 
 prog_b = ProgressBar.create(:format => '%a %B %p%% %t')
@@ -97,11 +104,11 @@ system("sudo killall airodump-ng")
 # Show computers name in the output table V
 # Changing progress bar V
 # --long scan [opionnal, seconds remaining] V
-# rendering a nice table in the end x
+# rendering a nice table in the end V
+# Option to choose network card V
 # Create a connexion x
 # Fix path problems x
 # Save the output table x
 # Control C escaping
 # Option to listen to all available APs.
-# Option to choose network card
 # Nice readme
