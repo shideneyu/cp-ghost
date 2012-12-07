@@ -12,7 +12,7 @@ Choice.options do
   header ''
   header 'Specific options:'
 
-  option :ssid, :required => true do
+  option :ssid do
     short '-s'
     long '--ssid *SSID'
     desc 'Set one of severals SSID of the targeted access point'
@@ -46,7 +46,7 @@ Choice.options do
     long '--version'
     desc 'Show version'
     action do
-      puts "cp-ghost v0.5"
+      puts "cp-ghost v0.6"
       exit      
     end
   end
@@ -58,7 +58,7 @@ end
     @ap_macs = {}
    	scndstatus = 0
     status = 0
-
+    Choice.choices[:ssid] ||= []
     case Choice.choices[:length]
       when "quick"
         @length = 0.07
@@ -70,17 +70,18 @@ end
 
 remaining_part = proc do
   CSV.foreach(".shidopwn/last-01.csv") do |row|
+    Choice.choices[:ssid] << row[13][1..-1] if row[13] && status == 0 && @status_ssid == 1
     Choice.choices[:ssid].each { |target_ssid| @ap_macs[row[0]] = target_ssid and break if target_ssid == row[13][1..-1]} if row[13] && status == 0
     @ap_macs.each { |ap_mac, target_ssid| @clients_array << Hash.new and @clients_array.last.replace({target_ssid => row[00]})  and break if row[05][1..-1] == ap_mac}  if status == 1 && row[0]
-    status = 1 if row[0] == "Station MAC"
+    status = 1 and @status_ssid = 0 if row[0] == "Station MAC"
+    @status_ssid = 1 if row[0] == "BSSID" && Choice.choices[:ssid].empty?
   end
   Formatador.display_compact_table(@clients_array) unless @clients_array.empty?
   puts "No results" if @clients_array.empty?
-
 end
 
 system("sudo ifconfig #{Choice.choices[:interface]} down")
-system("sudo iwconfig #{Choice.choices[:interface]}  mode monitor")
+system("sudo iwconfig #{Choice.choices[:interface]} mode monitor")
 system("sudo rm ~/.shidopwn/*") if system("mkdir -p ~/.shidopwn")
 
 counter = Thread.new do
@@ -106,9 +107,10 @@ system("sudo killall airodump-ng")
 # --long scan [opionnal, seconds remaining] V
 # rendering a nice table in the end V
 # Option to choose network card V
+# Option to listen to all available APs. V
 # Create a connexion x
 # Fix path problems x
 # Save the output table x
 # Control C escaping
-# Option to listen to all available APs.
 # Nice readme
+# Create a gem and package in deb
